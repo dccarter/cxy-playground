@@ -1,0 +1,109 @@
+module isolate
+
+import "stdlib/os.cxy"
+import "stdlib/log.cxy"
+import { Path } from "stdlib/path.cxy"
+
+exception IsolateError(msg: string) => msg
+
+struct Mount {
+    src: string
+    dst: string
+    flags: string = null
+
+    const func `str`(os: &OutputStream) {
+        os << dst << "=" << src
+        if (flags != null) {
+            os << ":" << flags
+        }
+    }
+}
+
+struct _AgumentAssign[T] {
+    x: T
+    arg: string 
+
+    const func `str`(os: &OutputStream) {
+        os << arg << "=" << x
+    }
+}
+
+@inline
+func argumentAssign[T](arg: string, x: T) {
+    return _AgumentAssign[T]{x: x, arg: arg}
+}
+
+pub struct SandboxConfig {
+    cxyRoot: string
+    srcRoot: string
+    processes = 20:i32;
+    wallTime = 10:i32;
+}
+
+pub struct Sandbox {
+    path: Path
+    id: i64 = -1
+    @static
+    LOG_TAG = "Sandbox"
+
+    func `init`(path: Path, id: i64) {
+        this.path = path
+        this.id = id
+    }
+
+    func execute(config: &SandboxConfig, cmd: string): !os.Process {
+        if (id == -1) {
+            raise IsolateError("Sandbox not initialized")
+        }
+        return os.shell(
+            "isolate", 
+            "--box-id", this.id,
+            "--dir", Mount{src: config.cxyRoot, dst: "/cxy"},
+            "--chdir", "/box",
+            "--env", "HOME=box",
+            "--env", "CXY_ROOT=/cxy",
+            "--env", "CXY_STDLIB_DIR=/cxy/lib/cxy/std",
+            "--env", "PATH=/usr/local/bin:/usr/bin:/cxy/bin",
+            argumentAssign("--wall-time", config.wallTime),
+            argumentAssign("--processes", config.processes),
+            "--run",
+            "--", cmd)
+    }
+
+    func cleanup(): !void {
+        if (id != -1) {
+            defer id = -1
+            var proc = os.shell("isolate", "--box-id", this.id, "--cleanup")
+            const status = proc.waitAsync()
+            if (status != 0) {
+                // We faied to cleanup sandbox
+                DBG!( "Cleaning up sandbox " << id << " failed: " << proc.stderr().readAll() )
+            }
+        }
+    }
+
+    @inline
+    func `deinit`() {
+        this.cleanup() catch {
+            DBG!( "failed to cleanup sandbox: " << ex! )
+        }
+    }
+}
+
+pub func createSandbox(): !Sandbox {
+    for (const id: 0:i32..1000) {
+        var proc = os.shell("isolate", "--box-id", id, "--init");
+        var status = proc.waitAsync()
+        if (status == 0) {
+            var output = proc.stdout().readAll();
+            output.trim()
+            var path = Path(output) / "box"
+            return Sandbox(&&path, id) 
+        }
+        else {
+            var err = proc.stderr().readAll();
+            stdout << "error: " << err << "\n"
+        }
+    }
+    raise IsolateError("Sandbox limit reached")
+}

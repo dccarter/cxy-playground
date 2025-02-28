@@ -1,4 +1,68 @@
+import "stdlib/os.cxy"
+import "stdlib/json.cxy"
 
-func main() {
-    println( "Hello World" )
+import { SandboxConfig } from "./server/isolate.cxy"
+import { Builder } from "./server/builder.cxy"
+import { Server, Request, Response, Status, Method, SendFile } from "stdlib/http.cxy"
+
+class ServerHandler {
+    builder: Builder = null;
+
+    func `init`(config: SandboxConfig) {
+        this.builder = Builder(&&config)
+    }
+
+    func build(req: &const Request, resp: &Response): !void {
+        var result = builder.build(&req._body);
+        json.toJSON(resp.body(), &result)
+    }
+
+    func run(req: &const Request, resp: &Response): !void {
+        var result = builder.run(&req._body);
+        json.toJSON(resp.body(), &result)
+    }
+
+    func source(req: &const Request, resp: &Response): !void {
+        var result = builder.source(&req._body);
+        if (result.build.status != 0) {
+            json.toJSON(resp.body(), &result.build)
+            return
+        }
+
+        resp.chunk(result.source.move())
+    }
+}
+
+func main(): !void {
+    var handler = ServerHandler(SandboxConfig{
+        cxyRoot: os.getenv("CXY_ROOT", "/cxy").str(),
+        srcRoot: "/src",
+    })
+
+    var server = Server[()]();
+    server("/build", (req: &const Request, resp: &Response) => {
+        handler.build(req, resp) catch {
+            resp.body() << ex!
+            resp.end(Status.BadRequest)
+            return
+        }
+    })([Method.Post])
+
+    server("/source", (req: &const Request, resp: &Response) => {
+        handler.source(req, resp) catch {
+            resp.body() << ex!
+            resp.end(Status.BadRequest)
+            return
+        }
+    })([Method.Post])
+
+    server("/run", (req: &const Request, resp: &Response) => {
+        handler.source(req, resp) catch {
+            resp.body() << ex!
+            resp.end(Status.BadRequest)
+            return
+        }
+    })([Method.Post])
+
+    server.start()
 }

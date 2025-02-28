@@ -12,7 +12,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --fix-missing cmake sqlite
   autoconf automake libtool curl make unzip wget \
   openssh-server nano rsync gdb bsdmainutils net-tools \
   libzmq3-dev git gcc g++ zsh sudo cppcheck clang llvm llvm-dev libclang-dev jq clang-format \
-  ruby pkg-config libsystem-dev ibcap-dev
+  ruby pkg-config libsystemd-dev libcap-dev
 
 # Add user and home directory
 RUN useradd -rm -d /home/dev -s /bin/zsh -g root -G sudo -u 1001 dev

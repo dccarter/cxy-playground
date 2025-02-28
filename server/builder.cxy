@@ -1,0 +1,124 @@
+module builder
+
+import "stdlib/log.cxy"
+import "stdlib/json.cxy"
+
+import { copy, mkstemp, TempFile, FileOutputStream } from "stdlib/os.cxy"
+import { Path } from "stdlib/path.cxy"
+import { Sandbox, SandboxConfig, createSandbox } from "./isolate.cxy"
+
+@[json]
+pub struct BuildRequest {
+    args: String = null
+    @json(b64: true)
+    code: String = null
+}
+
+@[json]
+pub struct BuildResponse {
+    @json(b64: true)
+    stdout: String = null;
+    @json(b64: true)
+    stderr: String = null;
+    status: i32;
+}
+
+@[json]
+pub struct RunResponse {
+    build = BuildResponse;
+    @json(b64: true)
+    stdout: String = null;
+    @json(b64: true)
+    stderr: String = null;
+    status: i32 = 0;
+}
+
+@[json]
+pub struct GenerateSourceResponse {
+    build = BuildResponse;
+    source: TempFile? = null;
+}
+
+const LOG_TAG = "PG_BUILD";
+
+pub class Builder {
+    - config: SandboxConfig;
+
+    func parseBuildRequest(request: &String): !BuildRequest {
+        var p = json.JSONParser(request.__str())
+        return json.parse[BuildRequest](&p)
+    }
+
+    - func createSource(dir: &Path, code: &String): !void {
+        var path = dir / "app.cxy"
+        var os = FileOutputStream.open(path.str());
+        os.writeAsync(code.data(), code.size())
+    }
+
+    - func buildCode(config: &SandboxConfig, sandbox: &Sandbox, request: &const String): !BuildResponse {
+        var requestObj = parseBuildRequest(request);
+        createSource(&sandbox.path, &requestObj.code)
+        var cmd = String("/cxy/bin/cxy build /box/app.cxy --with-mm");
+        if (requestObj.args.size() > 0)
+            cmd << " " << requestObj.args
+
+        DBG!( "executing command: " << cmd )
+        var proc = sandbox.execute(&config, cmd.str())
+        var status = proc.waitAsync()
+        var response = BuildResponse{
+            stdout: proc.stdout().readAll(),
+            status: status
+        }
+
+        if (status != 0) {
+            response.stderr = proc.stderr().readAll()
+        }
+        return &&response  
+    }
+
+    func `init`(config: SandboxConfig) {
+        this.config = &&config
+    }
+
+    func build(request: &const String): !BuildResponse {
+        var sandbox = createSandbox()
+        return buildCode(&config, &sandbox, request)
+    }
+
+    func run(request: &const String): !RunResponse {
+        var sandbox = createSandbox();
+        var build = buildCode(&config, &sandbox, request)
+        if (build.status != 0) {
+            return RunResponse{build: &&build}
+        }
+
+        var proc = sandbox.execute(&config, "/box/app")
+        var status = proc.waitAsync()
+        var response = RunResponse{
+            build: &&build,
+            stdout: proc.stdout().readAll(),
+            status: status
+        }
+        if (status != 0) {
+            response.stderr = proc.stderr().readAll()
+        }
+        return &&response
+    }
+
+    func source(
+        request: &const String
+    ): !GenerateSourceResponse {
+        var sandbox = createSandbox();
+        var build = buildCode(&config, &sandbox, request)
+        if (build.status != 0) {
+            return GenerateSourceResponse{build: &&build}
+        }
+
+        // Temporarily copy the generated source to /tmp directory
+        // Where it will be streamed from
+        var src = sandbox.path / "app.c"
+        var tmp = mkstemp("/tmp/req-", ".c");
+        copy(&tmp, src.str())
+        return GenerateSourceResponse{build: &&build, source: &&tmp}
+    }
+}

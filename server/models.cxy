@@ -1,9 +1,0 @@
-module models
-
-pub struct CodeStorage {
-    id: i32
-    code: String
-    hash: String
-    buildArguments: String
-    runConfiguration: String
-}

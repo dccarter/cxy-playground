@@ -7,7 +7,7 @@ CXY_DEPS_ARCH_DIR="#{CXY_DEPENCIES_DIR}/arch"
 CXY_DEPS_ARCH_BIN_DIR="#{CXY_DEPS_ARCH_DIR}/bin"
 CXY_DEPS_ARCH_LIB_DIR="#{CXY_DEPS_ARCH_DIR}/lib"
 
-ENV['CXY_STDLIB_DIR'] = "#{ENV['CXY_STDLIB_DIR']}/lib/cxy"
+ENV['PATH'] = "#{CXY_DEPS_ARCH_BIN_DIR}:#{ENV['PATH']}"
 
 unless File.directory?(CXY_BUILD_DIR)
   FileUtils.mkdir_p(CXY_DEPENCIES_DIR)
@@ -29,7 +29,7 @@ depencies = {
     :branch => "v2.0",
     :build => lambda do |dir|
       Dir.chdir(dir) do
-        `make PREFIX=#{CXY_DEPS_ARCH_BIN_DIR} install`
+        `make PREFIX=#{CXY_DEPS_ARCH_DIR} BOXDIR=#{CXY_DEPS_ARCH_DIR} install`
       end
     end
   }
@@ -44,7 +44,11 @@ end
 
 
 task :build do
-  `cxy build app.cxy --with-mm --build-dir #{CXY_BUILD_DIR} -o app`
+  system "cxy build app.cxy --with-mm --build-dir #{CXY_BUILD_DIR} -o app -g"
+end
+
+task run: [:build] do
+  system("#{CXY_BUILD_DIR}/app")
 end
 
 task :default => [:deps, :build]

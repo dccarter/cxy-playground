@@ -1,0 +1,6 @@
+import "stdlib/fserver.cxy"
+
+func main() {
+  println("Hello World!")
+  return 0
+}
