@@ -1,0 +1,26 @@
+name: Release cxy playground server image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  build:
+    runs-on: suilteam/cxy:latest
+    steps:
+      - name : Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby pkg-config libsystemd-dev libcap-dev
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Build and run tests
+        working-directory: ${{github.workspace}}
+        run: |
+          rake

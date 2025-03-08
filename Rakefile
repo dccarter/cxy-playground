@@ -123,4 +123,4 @@ task :test do
   end
 end
 
-task :default => [:deps, :build]
+task :default => [:deps, :build, :test]

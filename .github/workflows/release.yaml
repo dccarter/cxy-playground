@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: suilteam/cxy:latest
     steps:
       - name : Install dependencies
         run: |
@@ -23,8 +23,8 @@ jobs:
         working-directory: ${{github.workspace}}
         run: |
           rake package
+
       - name: Release the server
-        working-directory: ${{github.workspace}}
         uses: softprops/action-gh-release@v2
         with:
           files: |
