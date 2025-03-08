@@ -1,0 +1,44 @@
+// BUG: Compiler has a bug which requires module declaration
+// even on a test file.
+// It will be fixed soon
+module example
+
+// When import keyword is followed by the `test` keyword, the compiler
+// will include the code only in test builds.
+// This is helpful when importing test specific code
+import test "stdlib/os.cxy"
+
+// Unnamed test blocks are used to declare test only code. One can
+// types, functions and constants needed by the tests.
+// The compiler will exclude test code under normal builds.
+test {
+  struct User {
+    id: i32
+    name: string
+  }
+}
+
+func check(a: i32) {
+  return a != 0
+}
+
+// Tests are defined using the `test` keyword followed by the test name.
+// The compiler will exclude test code under normal builds.
+//
+// `ok` is a built-in macro that checks if an expression is true. If 
+// the expression is false, the test will fail.
+test "Test will pass"{
+  ok!(!check(0))
+  ok!(check(1))
+  const a = 199;
+  ok!(a - 20 == 179) 
+}
+
+test "Test will fail" {
+  ok!(check(0))
+}
+
+test "Tests specific code" {
+  const user = User{id: 102, name: "Thunya"};
+  ok!(user.id == 102)
+}

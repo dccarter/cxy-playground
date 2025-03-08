@@ -3,7 +3,7 @@ import "stdlib/json.cxy"
 
 import { SandboxConfig } from "./server/isolate.cxy"
 import { Builder } from "./server/builder.cxy"
-import { Server, Request, Response, Status, Method, SendFile } from "stdlib/http.cxy"
+import { Server, Request, Response, Status, Method, SendFile, Cors } from "stdlib/http.cxy"
 
 class ServerHandler {
     builder: Builder = null;
@@ -13,23 +13,66 @@ class ServerHandler {
     }
 
     func build(req: &const Request, resp: &Response): !void {
-        var result = builder.build(&req._body);
+        var buildRequest = builder.parseBuildRequest(&req._body) catch {
+            resp.end(Status.BadRequest)
+            return
+        }
+    
+        var result = builder.build(&buildRequest);
         json.toJSON(resp.body(), &result)
+        resp.header("Content-Type", "application/json")
     }
 
     func run(req: &const Request, resp: &Response): !void {
-        var result = builder.run(&req._body);
+        var buildRequest = builder.parseBuildRequest(&req._body) catch {
+            resp.end(Status.BadRequest)
+            return
+        }
+        var result = builder.run(&buildRequest);
         json.toJSON(resp.body(), &result)
+        resp.header("Content-Type", "application/json")
+    }
+
+    func tests(req: &const Request, resp: &Response): !void {
+        var buildRequest = builder.parseBuildRequest(&req._body) catch {
+            resp.end(Status.BadRequest)
+            return
+        }
+        var result = builder.tests(&buildRequest);
+        json.toJSON(resp.body(), &result)
+        resp.header("Content-Type", "application/json")
     }
 
     func source(req: &const Request, resp: &Response): !void {
-        var result = builder.source(&req._body);
+        var buildRequest = builder.parseBuildRequest(&req._body) catch {
+            resp.end(Status.BadRequest)
+            return
+        }
+        var result = builder.source(&buildRequest);
         if (result.build.status != 0) {
             json.toJSON(resp.body(), &result.build)
+            resp.header("Content-Type", "application/json")
             return
         }
 
+        resp.header("Content-Type", "text/plain")
         resp.chunk(result.source.move())
+    }
+
+    func snippets(resp: &Response): !void {
+        var fd = os.open("snippets.json")
+        const size = fd.size();
+        resp.chunk(&&fd, size)
+        resp.header("Content-Type", "application/json")
+    }
+
+    func snippet(resp: &Response, id: &__string): !void {
+        var path = String("snippets/");
+        path << id << ".cxy"
+        var fd = os.open(path.str())
+        const size = fd.size();
+        resp.chunk(&&fd, size)
+        resp.header("Content-Type", "text/plain")
     }
 }
 
@@ -39,30 +82,55 @@ func main(): !void {
         srcRoot: "/src",
     })
 
-    var server = Server[()]();
+    var server = Server[(Cors)]();
     server("/build", (req: &const Request, resp: &Response) => {
         handler.build(req, resp) catch {
             resp.body() << ex!
-            resp.end(Status.BadRequest)
+            resp.end(Status.InternalError)
             return
         }
-    })([Method.Post])
+    })([Method.Post, Method.Options])
 
     server("/source", (req: &const Request, resp: &Response) => {
         handler.source(req, resp) catch {
             resp.body() << ex!
-            resp.end(Status.BadRequest)
-            return
+            resp.end(Status.InternalError)
         }
-    })([Method.Post])
+    })([Method.Post, Method.Options])
 
     server("/run", (req: &const Request, resp: &Response) => {
-        handler.source(req, resp) catch {
+        handler.run(req, resp) catch {
             resp.body() << ex!
+            resp.end(Status.InternalError)
+        }
+    })([Method.Post, Method.Options])
+
+    server("/test", (req: &const Request, resp: &Response) => {
+        handler.tests(req, resp) catch {
+            resp.body() << ex!
+            resp.end(Status.InternalError)
+        }
+    })([Method.Post, Method.Options])
+
+    server("/snippets", (@unused _: &const Request, resp: &Response) => {
+        handler.snippets(resp) catch {
+            resp.body() << ex!
+            resp.end(Status.InternalError)
+        }
+    })([Method.Get, Method.Options])
+
+    server("/snippet/{id}", (req: &const Request, resp: &Response) => {
+        const id = req.param("id")
+        if (!id) {
             resp.end(Status.BadRequest)
             return
         }
-    })([Method.Post])
+
+        handler.snippet(resp, *id) catch {
+            resp.body() << ex!
+            resp.end(Status.InternalError)
+        }
+    })([Method.Get, Method.Options])
 
     server.start()
 }

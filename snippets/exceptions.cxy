@@ -1,0 +1,64 @@
+
+// Cxy supports custom exception defintions using the `exception` keyword.
+// The exception definition is similar to a function definition, but it uses
+// the `exception` keyword.
+// The exception body can be a single expression or a block of statements 
+// with a return statement.
+// The return type must the cxy native string type
+exception SomeError(msg: String) => msg != null? msg.str() : ""
+
+// Functions that raise exceptions must have an explict return type prefixed with `!`.
+// The `!` symbol indicates that the function can raise exceptions.
+// If a function is not marked as returning exceptions, it cannot raise exceptions or
+// call functions that raise exceptions without handling them.
+func say(id: i32): !void {
+    if (id == 0) {
+        raise SomeError(f"id=${id} is not supported")
+    }
+    println("User with id: ", id)
+}
+
+func get(id: i32): !String {
+    if (id == 0) {
+        raise SomeError(f"id=${id} is not supported")
+    }
+    return f"User with id: ${id}"
+}
+
+// Since main doesn't handle all the exceptions raised within its body,
+// it must be marked as returning exceptions with `!`. The application will
+// terminate with a stack trace if an exception is raised and not handled.
+func main(): !void {
+  // Exceptions can be caught and handled with the `catch` keyword.
+  // The left hand size of the `catch` keyword can be an expression,
+  // a block of statements or `discard` keyword.
+
+  // Here discard is used to ignore the exception and continue
+  say(0) catch discard
+
+  // This expression will not raise an exception
+  say(1)
+
+  // Here the exception is caught and the error message is printed
+  // Note that `ex!` macro is used to get raised error
+  say(0) catch {
+    stdout << "Caught exception: " << ex! << "\n"
+  }
+
+  // We are invoking get and assigning the result to msg. If get
+  // raises an exception, we catch it and assign a default value.
+  // We cannot use `discard` here because msg expects a value from get.
+  const msg = get(0) catch String("Unknown");
+  println("Message: ", msg)
+
+  // Here we are using `yield` to return a default value if an exception is raised.
+  // The `yield` keyword is used to return a value from a catch block.
+  const msg1 = get(0) catch {
+    stdout << "Caught exception: " << ex! << "\n"
+    yield String("Unknown again")
+  };
+  println("Message1: ", msg1)
+
+  // This will cause the application to terminate with a stack trace
+  say(0)
+}

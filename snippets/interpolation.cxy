@@ -1,0 +1,11 @@
+func add(a: i32, b: i32) => a + b
+
+func main(): void {
+  // Cxy supports string interpolation using the `f` prefix.
+  // The `f` prefix allows you to embed expressions inside string literals, using `${}`.
+  // The expression inside `${}` is evaluated and the result is inserted into the string.
+  // The expression can be any valid Cxy expression.
+  // The expression can be a single variable, a function call, or a more complex expression.
+  const a = 100:i32;
+  println(f"add(${a}, 200) = ${add(a, 200)}")
+}

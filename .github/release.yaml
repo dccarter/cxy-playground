@@ -1,0 +1,31 @@
+name: Release cxy playground server image
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name : Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby pkg-config libsystemd-dev libcap-dev
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Build and package the server
+        working-directory: ${{github.workspace}}
+        run: |
+          rake package
+      - name: Release the server
+        working-directory: ${{github.workspace}}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .build/playground.tar.gz
