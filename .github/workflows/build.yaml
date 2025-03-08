@@ -11,12 +11,14 @@ env:
 
 jobs:
   build:
-    runs-on: suilteam/cxy:latest
+    runs-on: ubuntu-latest
+    container:
+      image: suilteam/cxy:latest
     steps:
       - name : Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby pkg-config libsystemd-dev libcap-dev
+          apt-get update
+          apt-get install -y ruby pkg-config libsystemd-dev libcap-dev
       - name: Check out the repo
         uses: actions/checkout@v4
 
