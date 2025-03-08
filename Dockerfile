@@ -15,7 +15,3 @@ COPY --from=builder /cxy/.build/deps/arch/* /usr/local
 COPY --from=builder /cxy/.build/package /cxy
 # Set working directory
 WORKDIR /cxy
-# Set port
-EXPOSE 8100
-# Run the server
-CMD [ "./app" ]

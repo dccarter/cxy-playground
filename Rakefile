@@ -13,6 +13,7 @@ CXY_DEPS_ARCH_LIB_DIR="#{CXY_DEPS_ARCH_DIR}/lib"
 CXY_PACKAGES_DIR="#{CXY_BUILD_DIR}/package"
 
 ENV['PATH'] = "#{CXY_DEPS_ARCH_BIN_DIR}:#{ENV['PATH']}"
+ENV['CXY_SERVER_PORT'] = "8100"
 
 unless File.directory?(CXY_BUILD_DIR)
   FileUtils.mkdir_p(CXY_DEPENCIES_DIR)

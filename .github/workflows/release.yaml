@@ -25,6 +25,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context:
-          file: ./Dockerfile.dev
+          file: ./Dockerfile
           push: true
           tags: suilteam/cxy-playground-server:latest
