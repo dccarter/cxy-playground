@@ -61,11 +61,8 @@ task package: [:build, :test] do
   # snippets.json .build/app and .build/arch
   FileUtils.mkdir_p("#{CXY_PACKAGES_DIR}")
   FileUtils.cp_r("snippets", "#{CXY_PACKAGES_DIR}/snippets")
-  FileUtils.cp_r(".build/deps/arch", "#{CXY_PACKAGES_DIR}/arch")
   FileUtils.cp("snippets.json", "#{CXY_PACKAGES_DIR}/snippets.json")
   FileUtils.cp(".build/app", "#{CXY_PACKAGES_DIR}/app")
-  system("tar -czf #{CXY_BUILD_DIR}/playground.tar.gz -C #{CXY_PACKAGES_DIR} .")
-  FileUtils.rm_rf("#{CXY_PACKAGES_DIR}")
 end
 
 task :clean do
