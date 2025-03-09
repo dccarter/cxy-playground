@@ -35,13 +35,17 @@ depencies = {
     :branch => "v2.0",
     :build => lambda do |dir|
       Dir.chdir(dir) do
-        `make PREFIX=#{CXY_DEPS_ARCH_DIR} BOXDIR=#{CXY_DEPS_ARCH_DIR} install`
+        if ENV["ISOLATE_CONFIG"].nil?
+          `make PREFIX=#{CXY_DEPS_ARCH_DIR} BOXDIR=#{CXY_DEPS_ARCH_DIR} install`
+        else
+          `make PREFIX=#{CXY_DEPS_ARCH_DIR} BOXDIR=#{CXY_DEPS_ARCH_DIR} CONFIG=#{ENV["ISOLATE_CONFIG"]} install`
+        end
       end
     end
   }
 }
 
-task :deps do
+task :deps do | task, args |
   depencies.each do |name, dep|
     pullGitCode(dep[:repo], dep[:branch], "#{CXY_DEPENCIES_DIR}/#{name}")
     dep[:build].call("#{CXY_DEPENCIES_DIR}/#{name}")
