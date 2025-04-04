@@ -1,0 +1,16 @@
+when:
+  - event: pull_request
+    branch: main
+  - event: push
+    branch: main
+
+steps:
+  build-and-test:
+    image: suilteam/cxy:latest-ubuntu
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+    commands:
+      - apt-get update
+      - apt-get install -y --fix-missing ruby pkg-config libsystemd-dev libcap-dev
+      - rake build
+      - rake test
