@@ -25,7 +25,10 @@ def pullGitCode(repo, branch, dir)
       `git fetch --quiet`
     end
   else
-    `git clone --depth 1 --branch #{branch} #{repo} #{dir}`
+    `git clone #{repo} #{dir}`
+    Dir.chdir(dir) do
+      `git checkout -b #{branch} #{branch}`
+    end
   end
 end
 
