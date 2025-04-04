@@ -6,6 +6,6 @@ func main(): void {
   // The expression inside `${}` is evaluated and the result is inserted into the string.
   // The expression can be any valid Cxy expression.
   // The expression can be a single variable, a function call, or a more complex expression.
-  const a = 100:i32;
+  const a = 100 as i32;
   println(f"add(${a}, 200) = ${add(a, 200)}")
 }
