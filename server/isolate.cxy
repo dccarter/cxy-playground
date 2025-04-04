@@ -36,8 +36,8 @@ func argumentAssign[T](arg: string, x: T) {
 pub struct SandboxConfig {
     cxyRoot: string
     srcRoot: string
-    processes = 20:i32;
-    wallTime = 10:i32;
+    processes = 20 as i32;
+    wallTime = 10 as i32;
 }
 
 pub struct Sandbox {
@@ -91,7 +91,7 @@ pub struct Sandbox {
 }
 
 pub func createSandbox(): !Sandbox {
-    for (const id: 0:i32..1000) {
+    for (const id: 0 as i32..1000) {
         var proc = os.shell("isolate", "--box-id", id, "--init");
         var status = proc.waitAsync()
         if (status == 0) {

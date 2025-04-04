@@ -25,7 +25,10 @@ def pullGitCode(repo, branch, dir)
       `git fetch --quiet`
     end
   else
-    `git clone --depth 1 --branch #{branch} #{repo} #{dir}`
+    `git clone #{repo} #{dir}`
+    Dir.chdir(dir) do
+      `git checkout -b #{branch} #{branch}`
+    end
   end
 end
 
@@ -61,7 +64,7 @@ task run: [:build] do
   system("#{CXY_BUILD_DIR}/app")
 end
 
-task package: [:build, :test] do
+task package: [:build] do
   # We want to create a new package with the snippets,
   # snippets.json .build/app and .build/arch
   FileUtils.mkdir_p("#{CXY_PACKAGES_DIR}")

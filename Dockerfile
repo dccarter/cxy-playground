@@ -1,4 +1,4 @@
-FROM suilteam/cxy:latest AS builder
+FROM suilteam/cxy:latest-ubuntu AS builder
 
 # Install packages
 RUN apt-get -y update && apt-get -y upgrade
@@ -11,7 +11,7 @@ WORKDIR /cxy
 ENV ISOLATE_CONFIG=/usr/local/etc/isolate
 RUN rake package
 
-FROM suilteam/cxy:latest 
+FROM suilteam/cxy:latest-ubuntu
 COPY --from=builder /cxy/.build/package /cxy
 COPY --from=builder /cxy/.build/deps/arch/ /usr/local/
 COPY --from=builder /usr/local/etc/isolate /usr/local/etc/isolate

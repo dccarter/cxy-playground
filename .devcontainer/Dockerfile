@@ -1,4 +1,4 @@
-FROM suilteam/cxy:latest AS builder
+FROM suilteam/cxy:latest-ubuntu AS builder
 
 # Install packages
 RUN apt-get -y update && apt-get -y upgrade

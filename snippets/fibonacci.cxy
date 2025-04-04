@@ -12,6 +12,6 @@ func fib(n: i32): i32 {
 } 
 
 func main() {
-    const n = 10:i32;
+    const n = 10 as i32;
     println(f"fib(${n}) = ${fib(n)}")
 }
