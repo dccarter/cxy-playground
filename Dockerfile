@@ -15,5 +15,6 @@ FROM suilteam/cxy:latest-ubuntu
 COPY --from=builder /cxy/.build/package /cxy
 COPY --from=builder /cxy/.build/deps/arch/ /usr/local/
 COPY --from=builder /usr/local/etc/isolate /usr/local/etc/isolate
+ENV ISOLATE_CONFIG=/usr/local/etc/isolate
 # Set working directory
 WORKDIR /cxy

@@ -19,7 +19,7 @@ unless File.directory?(CXY_BUILD_DIR)
   FileUtils.mkdir_p(CXY_DEPENCIES_DIR)
 end
 
-def pullGitCode(repo, branch, dir)
+def pullGitCode(repo, branch, dir, patches = [])
   if File.directory?(dir)
     Dir.chdir(dir) do
       `git fetch --quiet`
@@ -29,6 +29,12 @@ def pullGitCode(repo, branch, dir)
     Dir.chdir(dir) do
       `git checkout -b #{branch} #{branch}`
     end
+    patches.each do |patch|
+      patchPath = File.join(File.dirname(__FILE__), "patches", patch)
+      Dir.chdir(dir) do
+        `git apply #{patchPath}`
+      end
+    end
   end
 end
 
@@ -36,6 +42,7 @@ depencies = {
   'isolate': {
     :repo => "https://github.com/ioi/isolate.git",
     :branch => "v2.0",
+    :patches => [ "isolate.patch" ],
     :build => lambda do |dir|
       Dir.chdir(dir) do
         if ENV["ISOLATE_CONFIG"].nil?
@@ -50,7 +57,7 @@ depencies = {
 
 task :deps do | task, args |
   depencies.each do |name, dep|
-    pullGitCode(dep[:repo], dep[:branch], "#{CXY_DEPENCIES_DIR}/#{name}")
+    pullGitCode(dep[:repo], dep[:branch], "#{CXY_DEPENCIES_DIR}/#{name}", dep.fetch(:patches, []))
     dep[:build].call("#{CXY_DEPENCIES_DIR}/#{name}")
   end
 end
@@ -64,7 +71,7 @@ task run: [:build] do
   system("#{CXY_BUILD_DIR}/app")
 end
 
-task package: [:build] do
+task package: [:build, :test] do
   # We want to create a new package with the snippets,
   # snippets.json .build/app and .build/arch
   FileUtils.mkdir_p("#{CXY_PACKAGES_DIR}")
