@@ -12,6 +12,16 @@ ENV ISOLATE_CONFIG=/usr/local/etc/isolate
 RUN rake package
 
 FROM suilteam/cxy:latest-ubuntu
+
+# Build arguments
+ARG RELEASE_TAG=v0.1.0
+
+# Set environment variables
+ENV RELEASE_TAG=${RELEASE_TAG}
+
+# Set labels
+LABEL version="${RELEASE_TAG}"
+
 COPY --from=builder /cxy/.build/package /cxy
 COPY --from=builder /cxy/.build/deps/arch/ /usr/local/
 COPY --from=builder /usr/local/etc/isolate /usr/local/etc/isolate
