@@ -5,6 +5,7 @@ when:
 steps:
   build-and-test:
     image: suilteam/cxy:latest-ubuntu
+    pull: true
     environment:
       DEBIAN_FRONTEND: noninteractive
     commands:
