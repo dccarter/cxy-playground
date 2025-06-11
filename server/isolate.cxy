@@ -40,12 +40,13 @@ pub struct SandboxConfig {
     wallTime = 10 as i32;
 }
 
+// TODO Make static
+const LOG_TAG = "Sandbox";
+
 pub struct Sandbox {
     path: Path
     id: i64 = -1
-    @static
-    LOG_TAG = "Sandbox"
-
+    
     func `init`(path: Path, id: i64) {
         this.path = path
         this.id = id
