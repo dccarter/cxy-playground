@@ -21,7 +21,7 @@ struct Mount {
 
 struct _AgumentAssign[T] {
     x: T
-    arg: string 
+    arg: string
 
     const func `str`(os: &OutputStream) {
         os << arg << "=" << x
@@ -40,13 +40,13 @@ pub struct SandboxConfig {
     wallTime = 10 as i32;
 }
 
-// TODO Make static
-const LOG_TAG = "Sandbox";
-
 pub struct Sandbox {
     path: Path
     id: i64 = -1
-    
+
+    @static
+    LOG_TAG = "Sandbox";
+
     func `init`(path: Path, id: i64) {
         this.path = path
         this.id = id
@@ -57,9 +57,10 @@ pub struct Sandbox {
             raise IsolateError("Sandbox not initialized")
         }
         return os.shell(
-            "isolate", 
+            "isolate",
             "--box-id", this.id,
             "--dir", Mount{src: config.cxyRoot, dst: "/cxy"},
+            "--dir", Mount{src: "/etc", dst: "/etc"},
             "--chdir", "/box",
             "--env", "HOME=box",
             "--env", "CXY_ROOT=/cxy",
@@ -99,7 +100,7 @@ pub func createSandbox(): !Sandbox {
             var output = proc.stdout().readAll();
             output.trim()
             var path = Path(output) / "box"
-            return Sandbox(&&path, id) 
+            return Sandbox(&&path, id)
         }
         else {
             var err = proc.stderr().readAll();

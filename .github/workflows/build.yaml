@@ -2,9 +2,9 @@ name: Release cxy playground server image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -13,9 +13,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: suilteam/cxy:latest
+      image: suilteam/cxy:latest-ubuntu
     steps:
-      - name : Install dependencies
+      - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y ruby pkg-config libsystemd-dev libcap-dev

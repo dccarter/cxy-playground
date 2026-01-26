@@ -39,10 +39,10 @@ pub struct GenerateSourceResponse {
     source: TempFile? = null;
 }
 
-const LOG_TAG = "PG_BUILD";
-
 pub class Builder {
     - config: SandboxConfig;
+    @static
+    LOG_TAG = "PG_BUILD";
 
     func parseBuildRequest(request: &const String): !BuildRequest {
         var p = json.JSONParser(request.__str())
@@ -62,7 +62,7 @@ pub class Builder {
     ): !BuildResponse {
         createSource(&sandbox.path, &request.code)
         var cmd = String("/cxy/bin/cxy ");
-        cmd << command << " /box/app.cxy --with-mm --no-progress"
+        cmd << command << " /box/app.cxy --no-progress"
         if (request.args != null && request.args.size() > 0)
             cmd << " " << request.args
 
@@ -77,7 +77,7 @@ pub class Builder {
         if (status != 0) {
             response.stderr = proc.stderr().readAll()
         }
-        return &&response  
+        return &&response
     }
 
     func `init`(config: SandboxConfig) {

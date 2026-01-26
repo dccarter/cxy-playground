@@ -10,6 +10,7 @@ env:
 
 jobs:
   build:
+    environment: CI
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -24,7 +25,7 @@ jobs:
       - name: Build and push to dockerhub
         uses: docker/build-push-action@v5
         with:
-          context:
+          context: .
           file: ./Dockerfile
           push: true
           tags: suilteam/cxy-playground-server:latest

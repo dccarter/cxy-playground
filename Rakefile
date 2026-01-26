@@ -64,7 +64,7 @@ end
 
 
 task build: [:deps] do
-  system "cxy build app.cxy --with-mm --build-dir #{CXY_BUILD_DIR} -o app -g"
+  system "cxy build app.cxy --build-dir #{CXY_BUILD_DIR} -o app -g"
 end
 
 task run: [:build] do
@@ -102,7 +102,7 @@ def runTest(snippet, command)
   raise "Error: #{response.code} #{response.body}" unless response.code == "200"
   # The response should be a json object with the key "output"
   responseJson = JSON.parse(response.body)
-  
+
   if command != "test" and responseJson["status"] != 0
     error = Base64.decode64(responseJson["stderr"])
     raise "Error: #{error}"
