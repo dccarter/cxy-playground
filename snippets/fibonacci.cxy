@@ -1,5 +1,5 @@
 // Cxy supports function definitions using the `func` keyword.
-// The return type of the function is specified after the `:` 
+// The return type of the function is specified after the `:`
 // symbol and it is optional.
 //
 // Cxy functions can be recursive as in the example below
@@ -9,9 +9,9 @@ func fib(n: i32): i32 {
         return n
     }
     return fib(n - 1) + fib(n - 2)
-} 
+}
 
 func main() {
     const n = 10 as i32;
-    println(f"fib(${n}) = ${fib(n)}")
+    println(f"fib({n}) = {fib(n)}")
 }

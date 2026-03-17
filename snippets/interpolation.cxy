@@ -7,5 +7,5 @@ func main(): void {
   // The expression can be any valid Cxy expression.
   // The expression can be a single variable, a function call, or a more complex expression.
   const a = 100 as i32;
-  println(f"add(${a}, 200) = ${add(a, 200)}")
+  println(f"add({a}, 200) = {add(a, 200)}")
 }

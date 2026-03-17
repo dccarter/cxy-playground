@@ -1,0 +1,74 @@
+package:
+  name: cxy-playground
+  version: 0.1.0
+  license: MIT
+
+builds:
+  app:
+    entry: src/app.cxy
+    output: app
+
+dependencies: []
+
+tests:
+  - file: "src/server/*.cxy"
+
+scripts:
+  env:
+    DEPS_ARCH_DIR: "{{SOURCE_DIR}}/.cxy/deps/arch"
+    DEPS_ARCH_BIN_DIR: "{{DEPS_ARCH_DIR}}/bin"
+    DEPS_ARCH_LIB_DIR: "{{DEPS_ARCH_DIR}}/lib"
+    BUILD_DIR: "{{SOURCE_DIR}}/.cxy/build"
+    ARTIFACTS_DIR: "{{SOURCE_DIR}}/.cxy/artifacts"
+  isolate:
+    inputs:
+      - "{{SOURCE_DIR}}/patches/isolate.patch"
+      - "{{CXY_PACKAGES_DIR}}/isolate/Makefile"
+    outputs:
+      - "{{DEPS_ARCH_BIN_DIR}}/isolate"
+    command: |
+      if [ ! -d {{CXY_PACKAGES_DIR}}/isolate ]; then
+        mkdir -p {{CXY_PACKAGES_DIR}}
+        git clone https://github.com/ioi/isolate.git {{CXY_PACKAGES_DIR}}/isolate
+        cd {{CXY_PACKAGES_DIR}}/isolate
+        git checkout v2.0
+        git apply {{SOURCE_DIR}}/patches/isolate.patch
+      else
+        cd {{CXY_PACKAGES_DIR}}/isolate
+        git fetch --quiet
+      fi
+      echo "ISOLATE CONFIG: $ISOLATE_CONFIG"
+      if [ -n "$ISOLATE_CONFIG" ]; then
+        make PREFIX={{DEPS_ARCH_DIR}} BOXDIR={{DEPS_ARCH_DIR}} CONFIG=$ISOLATE_CONFIG install
+      else
+        make PREFIX={{DEPS_ARCH_DIR}} BOXDIR={{DEPS_ARCH_DIR}} install
+      fi
+
+  build:
+    inputs:
+      - src/**/*.cxy
+    outputs:
+      - "{{BUILD_DIR}}/app"
+    command: |
+      mkdir -p {{BUILD_DIR}}
+      cxy package build --verbose
+  test:
+    depends: [isolate, build]
+    command: |
+      # Source test script and run package tests
+      . {{SOURCE_DIR}}/scripts/test.sh
+      package_run_tests
+
+  release:
+    depends: [test]
+    command: |
+      mkdir -p {{ARTIFACTS_DIR}}
+      cp {{BUILD_DIR}}/app {{ARTIFACTS_DIR}}/app
+      cp -r {{SOURCE_DIR}}/snippets {{ARTIFACTS_DIR}}/
+      cp {{SOURCE_DIR}}/snippets.json {{ARTIFACTS_DIR}}/
+
+  start:
+    depends: [isolate, build]
+    command: |
+      PATH=${PATH}:{{DEPS_ARCH_BIN_DIR}}
+      CXY_SERVER_PORT=8100 {{BUILD_DIR}}/app
