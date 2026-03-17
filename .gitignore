@@ -69,6 +69,7 @@ dkms.conf
 *.lai
 
 # Build directories
+.cxy
 .build
 .creator
 cmake-build-*

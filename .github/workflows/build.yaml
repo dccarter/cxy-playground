@@ -18,11 +18,11 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y ruby pkg-config libsystemd-dev libcap-dev
+          apt-get install -y pkg-config libsystemd-dev libcap-dev
       - name: Check out the repo
         uses: actions/checkout@v4
 
       - name: Build and run tests
         working-directory: ${{github.workspace}}
         run: |
-          rake
+          cxy package run release

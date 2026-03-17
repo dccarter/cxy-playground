@@ -2,5 +2,6 @@
   "exceptions": "Exception Handling",
   "fibonacci": "Fibonacci",
   "interpolation": "String Interpolation",
-  "tests": "Cxy Unit Testing"
+  "tests": "Cxy Unit Testing",
+  "yaml": "YAML parse & serialization"
 }

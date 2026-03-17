@@ -3,41 +3,14 @@ module builder
 import "stdlib/log.cxy"
 import "stdlib/json.cxy"
 
-import { copy, mkstemp, TempFile, FileOutputStream } from "stdlib/os.cxy"
+import { copy, mkstemp, FileOutputStream } from "stdlib/os.cxy"
 import { Path } from "stdlib/path.cxy"
 import { Sandbox, SandboxConfig, createSandbox } from "./isolate.cxy"
-
-@[json]
-pub struct BuildRequest {
-    args: String = null
-    @json(b64: true)
-    code: String = null
-}
-
-@[json]
-pub struct BuildResponse {
-    @json(b64: true)
-    stdout: String = null;
-    @json(b64: true)
-    stderr: String = null;
-    status: i32;
-}
-
-@[json]
-pub struct RunResponse {
-    build = BuildResponse;
-    @json(b64: true)
-    stdout: String = null;
-    @json(b64: true)
-    stderr: String = null;
-    status: i32 = 0;
-}
-
-@[json]
-pub struct GenerateSourceResponse {
-    build = BuildResponse;
-    source: TempFile? = null;
-}
+import {
+    BuildRequest,
+    BuildResponse,
+    RunResponse,
+    GenerateSourceResponse } from "../types.cxy"
 
 pub class Builder {
     - config: SandboxConfig;
@@ -45,8 +18,7 @@ pub class Builder {
     LOG_TAG = "PG_BUILD";
 
     func parseBuildRequest(request: &const String): !BuildRequest {
-        var p = json.JSONParser(request.__str())
-        return json.parse[BuildRequest](&p)
+        return json.parse[BuildRequest](request.__str())
     }
 
     - func createSource(dir: &Path, code: &const String): !void {
@@ -101,7 +73,7 @@ pub class Builder {
             return RunResponse{build: &&build}
         }
 
-        var proc = sandbox.execute(&config, "/box/app")
+        var proc = sandbox.restrictedExecute("/box/app")
         var status = proc.waitAsync()
         var response = RunResponse{
             build: &&build,

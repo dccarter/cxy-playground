@@ -72,6 +72,25 @@ pub struct Sandbox {
             "--", cmd)
     }
 
+    func restrictedExecute(cmd: string): !os.Process {
+        if (id == -1) {
+            raise IsolateError("Sandbox not initialized")
+        }
+
+        return os.shell(
+            "isolate",
+            "--box-id", this.id,
+            "--no-default-dirs",
+            "--dir", Mount{src: path.str(), dst: "/box"},
+            "--dir", Mount{src: "/usr/lib", dst: "/usr/lib"},
+            "--dir", Mount{src: "/lib", dst: "/lib"},
+            "--chdir", "/box",
+            argumentAssign("--wall-time", 20),
+            argumentAssign("--processes", 1),
+            "--run",
+            "--", cmd)
+    }
+
     func cleanup(): !void {
         if (id != -1) {
             defer id = -1

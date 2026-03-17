@@ -1,3 +1,4 @@
+// @TEST
 // BUG: Compiler has a bug which requires module declaration
 // even on a test file.
 // It will be fixed soon
@@ -25,13 +26,13 @@ func check(a: i32) {
 // Tests are defined using the `test` keyword followed by the test name.
 // The compiler will exclude test code under normal builds.
 //
-// `ok` is a built-in macro that checks if an expression is true. If 
+// `ok` is a built-in macro that checks if an expression is true. If
 // the expression is false, the test will fail.
 test "Test will pass"{
   ok!(!check(0))
   ok!(check(1))
   const a = 199;
-  ok!(a - 20 == 179) 
+  ok!(a - 20 == 179)
 }
 
 test "Test will fail" {

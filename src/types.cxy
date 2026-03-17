@@ -1,0 +1,35 @@
+module types
+
+import { TempFile } from "stdlib/os.cxy"
+
+@[json]
+pub struct BuildRequest {
+    args: String = null
+    @json(b64: true)
+    code: String = null
+}
+
+@[json]
+pub struct BuildResponse {
+    @json(b64: true)
+    stdout: String = null;
+    @json(b64: true)
+    stderr: String = null;
+    status: i32;
+}
+
+@[json]
+pub struct RunResponse {
+    build = BuildResponse;
+    @json(b64: true)
+    stdout: String = null;
+    @json(b64: true)
+    stderr: String = null;
+    status: i32 = 0;
+}
+
+@[json]
+pub struct GenerateSourceResponse {
+    build = BuildResponse;
+    source: TempFile? = null;
+}
